@@ -13,4 +13,5 @@ public interface ScheduleRepository extends JpaRepository<Schedule, Long> {
 
     @Query("SELECT s FROM Schedule s WHERE s.workDate >= :startDate AND s.workDate <= :endDate AND s.status = 1")
     List<Schedule> findAvailableSchedules(Date startDate, Date endDate);
+    List<Schedule> findByDoctorIdAndWorkDateBetween(Long doctorId, Date startDate, Date endDate);
 }
