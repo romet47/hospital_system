@@ -5,6 +5,7 @@ import com.example.hospital.entity.Patient;
 import com.example.hospital.entity.Schedule;
 import com.example.hospital.exception.ResourceNotFoundException;
 import com.example.hospital.repository.AppointmentRepository;
+import com.example.hospital.repository.ScheduleRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -14,9 +15,13 @@ import java.util.List;
 @Service
 public class AppointmentService {
     private final AppointmentRepository appointmentRepository;
+    private final ScheduleRepository scheduleRepository;
 
-    public AppointmentService(AppointmentRepository appointmentRepository) {
+    // 添加构造器注入
+    public AppointmentService(AppointmentRepository appointmentRepository,
+                              ScheduleRepository scheduleRepository) {
         this.appointmentRepository = appointmentRepository;
+        this.scheduleRepository = scheduleRepository;
     }
 
     @Transactional
@@ -29,12 +34,17 @@ public class AppointmentService {
         appointment.setAppointmentTime(new Date());
         appointment.setStatus("PENDING");
 
+        // 更新可用号源
+        schedule.setAvailableNumber(schedule.getAvailableNumber() - 1);
+        scheduleRepository.save(schedule);
+
         return appointmentRepository.save(appointment);
     }
 
     public List<Appointment> getPatientAppointments(Long patientId) {
         return appointmentRepository.findByPatientId(patientId);
     }
+
     @Transactional
     public Appointment cancelAppointment(Long appointmentId, Long patientId) {
         Appointment appointment = appointmentRepository.findByIdAndPatientId(appointmentId, patientId)

@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.Query;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 public interface AppointmentRepository extends JpaRepository<Appointment, Long> {
     List<Appointment> findByPatientId(Long patientId);
@@ -22,4 +23,6 @@ public interface AppointmentRepository extends JpaRepository<Appointment, Long> 
 
     @Query("SELECT a.status, COUNT(a) FROM Appointment a GROUP BY a.status")
     Map<String, Long> countAppointmentsByStatus();
+
+    Optional<Appointment> findByIdAndPatientId(Long id, Long patientId);
 }
