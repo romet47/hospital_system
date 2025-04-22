@@ -123,11 +123,7 @@ public class AuthController {
         }
 
         try {
-            // 先检查邮箱是否已注册
-            if (userRepository.existsByEmail(email)) {
-                return ResponseEntity.badRequest().body("该邮箱已注册");
-            }
-
+            // 移除邮箱是否已注册的检查
             emailService.sendVerificationCode(email);
             return ResponseEntity.ok("验证码已发送");
         } catch (Exception e) {
