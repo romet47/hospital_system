@@ -13,6 +13,9 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
+import java.util.Map;
+
 @RestController
 @RequestMapping("/api/auth")
 public class AuthController {
@@ -45,7 +48,12 @@ public class AuthController {
         SecurityContextHolder.getContext().setAuthentication(authentication);
         String jwt = jwtUtil.generateToken((org.springframework.security.core.userdetails.User) authentication.getPrincipal());
 
-        return ResponseEntity.ok(new LoginResponse(jwt));
+        // 确保返回格式包含token字段
+        Map<String, Object> response = new HashMap<>();
+        response.put("token", jwt);
+        response.put("success", true);
+
+        return ResponseEntity.ok(response);
     }
 
     @PostMapping("/register")
