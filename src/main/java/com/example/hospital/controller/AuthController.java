@@ -14,6 +14,7 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
@@ -45,22 +46,28 @@ public class AuthController {
 
     @PostMapping("/login")
     public ResponseEntity<?> authenticateUser(@RequestBody LoginRequest loginRequest) {
-        Authentication authentication = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(
-                        loginRequest.getUsername(),
-                        loginRequest.getPassword()
-                )
-        );
+        try {
+            // 调试：打印输入的密码和用户名
+            System.out.println("Login attempt - Username: " + loginRequest.getUsername());
+            System.out.println("Login attempt - Password: " + loginRequest.getPassword());
 
-        SecurityContextHolder.getContext().setAuthentication(authentication);
-        String jwt = jwtUtil.generateToken((org.springframework.security.core.userdetails.User) authentication.getPrincipal());
+            Authentication authentication = authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(
+                            loginRequest.getUsername(),
+                            loginRequest.getPassword()
+                    )
+            );
 
-        // 确保返回格式包含token字段
-        Map<String, Object> response = new HashMap<>();
-        response.put("token", jwt);
-        response.put("success", true);
+            SecurityContextHolder.getContext().setAuthentication(authentication);
+            String jwt = jwtUtil.generateToken((UserDetails) authentication.getPrincipal());
 
-        return ResponseEntity.ok(response);
+            return ResponseEntity.ok(Map.of("token", jwt, "success", true));
+        } catch (Exception e) {
+            // 打印具体错误
+            System.err.println("Login failed: " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.status(401).body("Login failed: " + e.getMessage());
+        }
     }
     @PostMapping("/reset-password")
     public ResponseEntity<?> resetPassword(@RequestBody ResetPasswordRequest request) {

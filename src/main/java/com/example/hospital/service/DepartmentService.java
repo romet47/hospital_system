@@ -14,11 +14,31 @@ public class DepartmentService {
         this.departmentRepository = departmentRepository;
     }
 
+    // 原有方法
     public List<Department> getAllActiveDepartments() {
         return departmentRepository.findByStatus(1);
     }
 
     public Department getDepartmentById(Long id) {
         return departmentRepository.findById(id).orElse(null);
+    }
+
+    // 新增AdminController需要的方法
+    public Department saveDepartment(Department department) {
+        return departmentRepository.save(department);
+    }
+
+    public Department updateDepartment(Long id, Department department) {
+        department.setId(id); // 确保ID一致
+        return departmentRepository.save(department);
+    }
+
+    public void deleteDepartment(Long id) {
+        departmentRepository.deleteById(id);
+    }
+
+    // 可选：获取所有科室（包括非活跃的）
+    public List<Department> getAllDepartments() {
+        return departmentRepository.findAll();
     }
 }

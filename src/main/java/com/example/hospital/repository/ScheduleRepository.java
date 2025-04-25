@@ -10,6 +10,7 @@ import java.util.List;
 public interface ScheduleRepository extends JpaRepository<Schedule, Long> {
     List<Schedule> findByDoctorIdAndWorkDate(Long doctorId, Date workDate);
     List<Schedule> findByDepartmentIdAndWorkDate(Long departmentId, Date workDate);
+    boolean existsByDoctorIdAndWorkDateAndTimeSlot(Long doctorId, Date workDate, String timeSlot);
 
     @Query("SELECT s FROM Schedule s WHERE s.workDate >= :startDate AND s.workDate <= :endDate AND s.status = 1")
     List<Schedule> findAvailableSchedules(Date startDate, Date endDate);
