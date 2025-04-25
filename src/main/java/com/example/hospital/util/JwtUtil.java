@@ -2,6 +2,7 @@ package com.example.hospital.util;
 
 import io.jsonwebtoken.*;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
@@ -20,6 +21,16 @@ public class JwtUtil {
 
     public String generateToken(UserDetails userDetails) {
         Map<String, Object> claims = new HashMap<>();
+        // 获取用户角色（Spring Security会自动添加ROLE_前缀）
+        String role = userDetails.getAuthorities().stream()
+                .map(GrantedAuthority::getAuthority)
+                .findFirst()
+                .orElse("ROLE_USER");
+
+        // 移除ROLE_前缀（可选）
+        role = role.replace("ROLE_", "");
+
+        claims.put("role", role); // 添加角色声明
         return createToken(claims, userDetails.getUsername());
     }
 
@@ -45,7 +56,9 @@ public class JwtUtil {
     public Date extractExpiration(String token) {
         return extractClaim(token, Claims::getExpiration);
     }
-
+    public String extractRole(String token) {
+        return extractAllClaims(token).get("role", String.class);
+    }
     private <T> T extractClaim(String token, Function<Claims, T> claimsResolver) {
         final Claims claims = extractAllClaims(token);
         return claimsResolver.apply(claims);

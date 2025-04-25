@@ -23,12 +23,17 @@ public class CustomUserDetailsService implements UserDetailsService {
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+                .orElseThrow(() -> new UsernameNotFoundException("用户不存在"));
+
+        // 确保角色不为空
+        String role = (user.getRole() != null && !user.getRole().isEmpty()) ?
+                user.getRole().toUpperCase() :
+                "USER"; // 默认角色
 
         return org.springframework.security.core.userdetails.User.builder()
                 .username(user.getUsername())
                 .password(user.getPassword())
-                .roles(user.getRole().toUpperCase()) // 直接传递 "ADMIN"，Spring 会自动补全为 "ROLE_ADMIN"
+                .roles(role) // Spring会自动添加ROLE_前缀
                 .build();
     }
 }
