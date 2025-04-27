@@ -2,7 +2,9 @@ package com.example.hospital.entity;
 
 import jakarta.persistence.*;
 import jakarta.persistence.Column;
+import jakarta.persistence.ConstraintMode;
 import jakarta.persistence.Entity;
+import jakarta.persistence.ForeignKey;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -23,7 +25,13 @@ public class Doctor {
     private Long id;
 
     @OneToOne
-    @JoinColumn(name = "user_id", referencedColumnName = "id", unique = true)
+    @JoinColumn(
+            name = "user_id",
+            referencedColumnName = "id",
+            unique = true,
+            nullable = true,  // 明确允许为null
+            foreignKey = @ForeignKey(ConstraintMode.NO_CONSTRAINT) // 关闭外键约束
+    )
     private User user;
 
     @Column(nullable = false)

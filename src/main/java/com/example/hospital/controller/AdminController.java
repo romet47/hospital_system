@@ -2,9 +2,14 @@ package com.example.hospital.controller;
 
 import com.example.hospital.entity.*;
 import com.example.hospital.service.*;
+import jakarta.validation.Valid;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -21,17 +26,19 @@ public class AdminController {
     private final UserService userService;
     private final DepartmentService departmentService;
     private final StatsService statsService;
-
+    private final PasswordEncoder passwordEncoder;
     public AdminController(DoctorService doctorService,
                            ScheduleService scheduleService,
                            UserService userService,
                            DepartmentService departmentService,
-                           StatsService statsService) {
+                           StatsService statsService,
+                           PasswordEncoder passwordEncoder) {
         this.doctorService = doctorService;
         this.scheduleService = scheduleService;
         this.userService = userService;
         this.departmentService = departmentService;
         this.statsService = statsService;
+        this.passwordEncoder = passwordEncoder;
     }
 
     // 用户管理
@@ -40,6 +47,24 @@ public class AdminController {
         return userService.getAllUsers(pageable);
     }
 
+    // 获取单个用户
+    @GetMapping("/users/{id}")
+    public ResponseEntity<User> getUserById(@PathVariable Long id) {
+        return userService.getUserById(id)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
+    }
+
+    // 添加用户（需密码加密）
+    @PostMapping("/users")
+    public ResponseEntity<?> addUser(@Valid @RequestBody User user, BindingResult result) {
+        if (result.hasErrors() || user.getPassword() == null) {
+            return ResponseEntity.badRequest().body("用户名、密码、邮箱和角色不能为空");
+        }
+        user.setPassword(passwordEncoder.encode(user.getPassword()));
+        User savedUser = userService.saveUser(user);
+        return ResponseEntity.ok(savedUser);
+    }
 
     @PutMapping("/users/{id}")
     public User updateUser(@PathVariable Long id, @RequestBody User user) {
@@ -47,10 +72,18 @@ public class AdminController {
     }
 
     @DeleteMapping("/users/{id}")
-    public void deleteUser(@PathVariable Long id) {
-        userService.deleteUser(id);
+    public ResponseEntity<?> deleteUser(@PathVariable Long id) {
+        try {
+            userService.deleteUser(id);
+            return ResponseEntity.ok().build();
+        } catch (DataIntegrityViolationException e) {
+            return ResponseEntity.status(HttpStatus.CONFLICT)
+                    .body("无法删除：用户存在关联数据");
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError()
+                    .body("删除失败: " + e.getMessage());
+        }
     }
-
     // 科室管理
     @GetMapping("/departments")  // 添加这个新方法
     public List<Department> getAllDepartments() {
