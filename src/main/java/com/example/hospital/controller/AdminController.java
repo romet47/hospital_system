@@ -1,6 +1,7 @@
 package com.example.hospital.controller;
 
 import com.example.hospital.entity.*;
+import com.example.hospital.exception.ResourceNotFoundException;
 import com.example.hospital.service.*;
 import jakarta.validation.Valid;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -139,6 +140,22 @@ public class AdminController {
     @DeleteMapping("/schedules/{id}")
     public void deleteSchedule(@PathVariable Long id) {
         scheduleService.deleteSchedule(id);
+    }
+    // 获取所有排班
+    @GetMapping("/schedules")
+    public List<Schedule> getAllSchedules() {
+        return scheduleService.getAllSchedules();
+    }
+
+    // 根据ID获取排班
+    @GetMapping("/schedules/{id}")
+    public ResponseEntity<Schedule> getScheduleById(@PathVariable Long id) {
+        try {
+            Schedule schedule = scheduleService.getScheduleById(id);
+            return ResponseEntity.ok(schedule);
+        } catch (ResourceNotFoundException e) {
+            return ResponseEntity.notFound().build();
+        }
     }
 
     // 数据统计

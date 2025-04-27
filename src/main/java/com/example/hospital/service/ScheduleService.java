@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class ScheduleService {
@@ -62,6 +63,12 @@ public class ScheduleService {
         return scheduleRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("排班未找到，ID: " + id));
     }
+
+
+    public List<Schedule> getAllSchedules() {
+        return scheduleRepository.findAll();
+    }
+
 
     // 获取可用排班
     public List<Schedule> getAvailableSchedules(Date startDate, Date endDate) {
