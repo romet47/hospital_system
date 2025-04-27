@@ -4,6 +4,7 @@ import com.example.hospital.entity.*;
 import com.example.hospital.service.*;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -51,6 +52,15 @@ public class AdminController {
     }
 
     // 科室管理
+    @GetMapping("/departments")  // 添加这个新方法
+    public List<Department> getAllDepartments() {
+        return departmentService.getAllDepartments();
+    }
+    @GetMapping("/departments/{id}")
+    public ResponseEntity<Department> getDepartmentById(@PathVariable Long id) {
+        Department department = departmentService.getDepartmentById(id);
+        return ResponseEntity.ok(department);
+    }
     @PostMapping("/departments")
     public Department addDepartment(@RequestBody Department department) {
         return departmentService.saveDepartment(department);

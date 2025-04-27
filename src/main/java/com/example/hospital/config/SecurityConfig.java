@@ -87,13 +87,14 @@ public class SecurityConfig {
                         .requestMatchers("/api/doctors/**").permitAll() // 添加医生公开访问
                         .requestMatchers("/api/schedules/**").permitAll()
                         .requestMatchers(
-                                "/api/auth/**",
                                 "/v3/api-docs/**",
                                 "/swagger-ui/**",
                                 "/swagger-resources/**",
                                 "/webjars/**"
-                        ).permitAll()// 添加排班公开访问
-                        .anyRequest().authenticated()
+                        ).permitAll()
+                        .requestMatchers("/api/admin/**").authenticated()
+                        .anyRequest().permitAll()
+
                 )
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 

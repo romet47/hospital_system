@@ -1,6 +1,7 @@
 package com.example.hospital.service;
 
 import com.example.hospital.entity.Department;
+import com.example.hospital.exception.ResourceNotFoundException;
 import com.example.hospital.repository.DepartmentRepository;
 import org.springframework.stereotype.Service;
 
@@ -17,10 +18,6 @@ public class DepartmentService {
     // 原有方法
     public List<Department> getAllActiveDepartments() {
         return departmentRepository.findByStatus(1);
-    }
-
-    public Department getDepartmentById(Long id) {
-        return departmentRepository.findById(id).orElse(null);
     }
 
     // 新增AdminController需要的方法
@@ -40,5 +37,10 @@ public class DepartmentService {
     // 可选：获取所有科室（包括非活跃的）
     public List<Department> getAllDepartments() {
         return departmentRepository.findAll();
+    }
+
+    public Department getDepartmentById(Long id) {
+        return departmentRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Department not found"));
     }
 }
