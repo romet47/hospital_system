@@ -1,9 +1,11 @@
 package com.example.hospital.controller;
 
+import com.example.hospital.dto.ScheduleRequest;
 import com.example.hospital.entity.*;
 import com.example.hospital.exception.ResourceNotFoundException;
 import com.example.hospital.service.*;
 import jakarta.validation.Valid;
+import org.hibernate.Hibernate;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -113,24 +115,69 @@ public class AdminController {
     // 医生管理
     @PutMapping("/doctors/{id}")
     public Doctor updateDoctor(@PathVariable Long id, @RequestBody Doctor doctor) {
-        return doctorService.updateDoctor(id, doctor);
+        // 确保department不为null
+        if (doctor.getDepartment() == null || doctor.getDepartment().getId() == null) {
+            throw new IllegalArgumentException("Department ID is required");
+        }
+
+        // 获取现有医生信息
+        Doctor existingDoctor = doctorService.getDoctorById(id);
+        if (existingDoctor == null) {
+            throw new ResourceNotFoundException("Doctor not found with id: " + id);
+        }
+
+        // 更新基本信息
+        existingDoctor.setName(doctor.getName());
+        existingDoctor.setTitle(doctor.getTitle());
+        existingDoctor.setSpecialty(doctor.getSpecialty());
+        existingDoctor.setIntroduction(doctor.getIntroduction());
+
+        // 更新科室信息
+        Department department = new Department();
+        department.setId(doctor.getDepartment().getId());
+        existingDoctor.setDepartment(department);
+
+        return doctorService.saveDoctor(existingDoctor);
     }
 
     @DeleteMapping("/doctors/{id}")
     public void deleteDoctor(@PathVariable Long id) {
         doctorService.deleteDoctor(id);
     }
+    @PostMapping("/schedules")
+    public ResponseEntity<?> addSchedule(@RequestBody ScheduleRequest request) {
+        try {
+            Schedule schedule = scheduleService.createSchedule(request);
+            return ResponseEntity.ok(schedule);
+        } catch (ResourceNotFoundException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body("服务器内部错误");
+        }
+    }
 
-    @GetMapping("/doctors")
+    @PostMapping("/doctors")
+    public ResponseEntity<?> addDoctor(@RequestBody Doctor doctor) {
+        try {
+            // 确保department不为null
+            if (doctor.getDepartment() == null || doctor.getDepartment().getId() == null) {
+                return ResponseEntity.badRequest().body("科室ID不能为空");
+            }
+
+            Doctor savedDoctor = doctorService.saveDoctor(doctor);
+            return ResponseEntity.ok(savedDoctor);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+    @GetMapping("/doctors") // 完整路径将是 /api/admin/doctors
     public Page<Doctor> getAllDoctors(Pageable pageable) {
         return doctorService.getAllDoctors(pageable);
     }
 
     // 排班管理
-    @PostMapping("/schedules")
-    public Schedule addSchedule(@RequestBody Schedule schedule) {
-        return scheduleService.saveSchedule(schedule);
-    }
 
     @PutMapping("/schedules/{id}")
     public Schedule updateSchedule(@PathVariable Long id, @RequestBody Schedule schedule) {
