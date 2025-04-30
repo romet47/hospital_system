@@ -1,14 +1,7 @@
 package com.example.hospital.entity;
 
 import jakarta.persistence.*;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
 import lombok.Data;
-import javax.persistence.*;
 import java.util.Date;
 
 @Entity
@@ -36,5 +29,15 @@ public class User {
     @Column(updatable = false)
     private Date createTime = new Date();
 
+    @OneToOne
+    @JoinColumn(name = "doctor_id")
+    private Doctor doctor; // 添加 Doctor 关联
 
+    public Doctor getDoctor() {
+        return doctor;
+    }
+
+    public void setDoctor(Doctor doctor) {
+        this.doctor = doctor;
+    }
 }

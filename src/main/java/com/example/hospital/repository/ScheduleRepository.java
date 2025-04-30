@@ -18,4 +18,6 @@ public interface ScheduleRepository extends JpaRepository<Schedule, Long> {
 
     @Query("SELECT s FROM Schedule s WHERE s.workDate BETWEEN ?1 AND ?2 AND s.status = ?3")
     List<Schedule> findByWorkDateBetweenAndStatus(Date startDate, Date endDate, Integer status);
+
+    List<Schedule> findByDoctorId(Long doctorId);
 }

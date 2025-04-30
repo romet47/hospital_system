@@ -19,7 +19,7 @@ public class JwtUtil {
     @Value("${jwt.expiration}")
     private Long expiration;
 
-    public String generateToken(UserDetails userDetails) {
+    public String generateToken(UserDetails userDetails, Long doctorId) {
         Map<String, Object> claims = new HashMap<>();
         // 获取用户角色（Spring Security会自动添加ROLE_前缀）
         String role = userDetails.getAuthorities().stream()
@@ -31,6 +31,7 @@ public class JwtUtil {
         role = role.replace("ROLE_", "");
 
         claims.put("role", role); // 添加角色声明
+        claims.put("doctorId", doctorId); // 添加 doctorId 声明
         return createToken(claims, userDetails.getUsername());
     }
 
@@ -56,9 +57,15 @@ public class JwtUtil {
     public Date extractExpiration(String token) {
         return extractClaim(token, Claims::getExpiration);
     }
+
     public String extractRole(String token) {
         return extractAllClaims(token).get("role", String.class);
     }
+
+    public Long extractDoctorId(String token) {
+        return extractAllClaims(token).get("doctorId", Long.class);
+    }
+
     private <T> T extractClaim(String token, Function<Claims, T> claimsResolver) {
         final Claims claims = extractAllClaims(token);
         return claimsResolver.apply(claims);
@@ -71,7 +78,6 @@ public class JwtUtil {
                 .parseClaimsJws(token)
                 .getBody();
     }
-
 
     private Boolean isTokenExpired(String token) {
         return extractExpiration(token).before(new Date());

@@ -1,8 +1,11 @@
 package com.example.hospital.service;
 
 import com.example.hospital.entity.Doctor;
+import com.example.hospital.entity.Schedule;
 import com.example.hospital.exception.ResourceNotFoundException;
 import com.example.hospital.repository.DoctorRepository;
+import com.example.hospital.repository.ScheduleRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -12,9 +15,12 @@ import java.util.List;
 @Service
 public class DoctorService {
     private final DoctorRepository doctorRepository;
+    private final ScheduleRepository scheduleRepository;
 
-    public DoctorService(DoctorRepository doctorRepository) {
+    @Autowired
+    public DoctorService(DoctorRepository doctorRepository, ScheduleRepository scheduleRepository) {
         this.doctorRepository = doctorRepository;
+        this.scheduleRepository = scheduleRepository;
     }
 
     // 原有方法
@@ -61,5 +67,10 @@ public class DoctorService {
     // 新增：获取所有医生（分页）
     public Page<Doctor> getAllDoctors(Pageable pageable) {
         return doctorRepository.findAll(pageable);
+    }
+
+    // 新增：根据 doctorId 获取排班信息
+    public List<Schedule> getSchedulesByDoctorId(Long doctorId) {
+        return scheduleRepository.findByDoctorId(doctorId);
     }
 }

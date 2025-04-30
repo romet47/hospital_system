@@ -1,13 +1,13 @@
 package com.example.hospital.controller;
 
 import com.example.hospital.dto.LoginRequest;
-import com.example.hospital.dto.LoginResponse;
 import com.example.hospital.dto.ResetPasswordRequest;
 import com.example.hospital.entity.User;
 import com.example.hospital.exception.ResourceNotFoundException;
 import com.example.hospital.repository.UserRepository;
 import com.example.hospital.service.EmailService;
 import com.example.hospital.util.JwtUtil;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -31,7 +31,7 @@ public class AuthController {
     private final JwtUtil jwtUtil;
     private final EmailService emailService;
 
-    // 只注入认证相关的依赖
+    @Autowired
     public AuthController(AuthenticationManager authenticationManager,
                           UserRepository userRepository,
                           PasswordEncoder passwordEncoder,
@@ -59,7 +59,15 @@ public class AuthController {
             );
 
             SecurityContextHolder.getContext().setAuthentication(authentication);
-            String jwt = jwtUtil.generateToken((UserDetails) authentication.getPrincipal());
+            UserDetails userDetails = (UserDetails) authentication.getPrincipal();
+
+            // 获取 doctorId
+            User user = userRepository.findByUsername(loginRequest.getUsername())
+                    .orElseThrow(() -> new ResourceNotFoundException("用户不存在"));
+            Long doctorId = user.getDoctor() != null ? user.getDoctor().getId() : null;
+
+            // 生成包含 doctorId 的 Token
+            String jwt = jwtUtil.generateToken(userDetails, doctorId);
 
             return ResponseEntity.ok(Map.of("token", jwt, "success", true));
         } catch (Exception e) {
@@ -69,6 +77,7 @@ public class AuthController {
             return ResponseEntity.status(401).body("Login failed: " + e.getMessage());
         }
     }
+
     @PostMapping("/reset-password")
     public ResponseEntity<?> resetPassword(@RequestBody ResetPasswordRequest request) {
         // 1. 验证验证码
@@ -88,6 +97,7 @@ public class AuthController {
 
         return ResponseEntity.ok("密码重置成功");
     }
+
     @PostMapping("/register")
     public ResponseEntity<?> registerUser(@RequestBody User user, @RequestParam String code) {
         // 验证验证码
@@ -113,6 +123,7 @@ public class AuthController {
 
         return ResponseEntity.ok("User registered successfully!");
     }
+
     @GetMapping("/check-email")
     public ResponseEntity<?> checkEmail(@RequestParam String email) {
         boolean exists = userRepository.existsByEmail(email);
