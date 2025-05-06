@@ -22,18 +22,25 @@ public class AppointmentController {
     private final PatientService patientService;
     private final ScheduleService scheduleService;
 
+// 构造函数，用于初始化AppointmentController对象
     public AppointmentController(AppointmentService appointmentService,
                                  PatientService patientService,
                                  ScheduleService scheduleService) {
+        // 初始化appointmentService对象
         this.appointmentService = appointmentService;
+        // 初始化patientService对象
         this.patientService = patientService;
+        // 初始化scheduleService对象
         this.scheduleService = scheduleService;
     }
 
 
     @GetMapping("/my")
+    // 根据用户名获取用户详细信息
     public List<Appointment> getMyAppointments(@AuthenticationPrincipal UserDetails userDetails) {
+        // 根据用户名获取患者信息
         Patient patient = patientService.getPatientByUsername(userDetails.getUsername());
+        // 根据患者id获取患者预约信息
         return appointmentService.getPatientAppointments(patient.getId());
     }
 

@@ -1,6 +1,7 @@
 package com.example.hospital.security;
 
 import com.example.hospital.util.JwtUtil;
+import io.jsonwebtoken.ExpiredJwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -60,10 +61,14 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                     }
                 }
             }
+        } catch (ExpiredJwtException e) {
+            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Token已过期，请重新登录");
+            return; // 终止请求
         } catch (Exception e) {
             logger.error("JWT认证失败", e);
+            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "无效的Token");
+            return;
         }
-
         filterChain.doFilter(request, response);
     }
 }
